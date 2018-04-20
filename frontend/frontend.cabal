@@ -30,7 +30,9 @@ executable frontend
                      , servant-reflex
                      , servant
                      , text
+                     , ghcjs-prim
                      , ghcjs-dom
+                     , ghcjs-dom-jsffi
                      , groundhog-ghcjs
                      , mtl
                      , uri-bytestring

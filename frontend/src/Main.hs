@@ -12,6 +12,8 @@
 {-# LANGUAGE TypeFamilies          #-}
 {-# LANGUAGE TypeOperators         #-}
 
+{-# LANGUAGE PartialTypeSignatures #-}
+
 module Main where
 
 ------------------------------------------------------------------------------
@@ -35,16 +37,23 @@ import           GHCJS.DOM.EventM           (EventM, event, on)
 import qualified GHCJS.DOM.HTMLImageElement as ImageElement
 import           GHCJS.DOM.MouseEvent       (getClientX, getClientY)
 import qualified GHCJS.DOM.Types            as GHCJS
+-- import qualified GHCJS.Prim                 as GHCJS
+import           GHCJS.Prim                 (fromJSInt)
 import           Reflex.Dom
 import           Servant.API
 import           Servant.Reflex
 import           Text.Read
 import qualified URI.ByteString             as URI
 #ifdef ghcjs_HOST_OS
-import           GHCJS.DOM.ClientRect       (getHeight, getLeft, getTop,
-                                             getWidth)
-import           GHCJS.DOM.Element          (click, getBoundingClientRect,
-                                             getClientLeft, getClientTop)
+-- import           GHCJS.DOM.ClientRect       (getHeight, getLeft, getTop,
+--                                              getWidth)
+-- import           GHCJS.DOM.ClientRect       (getLeft, getTop)
+import           GHCJS.DOM.JSFFI.Generated.Rect (getLeft, getTop)
+-- import           GHCJS.DOM.Element          (cgetBoundingClientRect,
+--                                              getClientLeft, getClientTop)
+import           GHCJS.DOM.JSFFI.Generated.Element (getBoundingClientRect)
+import           GHCJS.DOM.GlobalEventHandlers (click)
+import           GHCJS.DOM.Types (castTo, unsafeCastTo)
 #endif
 import Text.Printf
 
@@ -62,6 +71,9 @@ type SupportsSoap t m = (DomBuilder t m, HasWebView (Performable m)
                         ,DomBuilderSpace m ~ GhcjsDomSpace
                         ,TriggerEvent t m, PerformEvent t m
                         ,MonadIO (Performable m), PostBuild t m
+#ifdef ghcjs_HOST_OS
+                        ,MonadIO m -- SK: Needed for ghc as well?
+#endif
                         ,MonadHold t m
                         ,MonadFix m
                         ,GHCJS.IsGObject (RawElement (DomBuilderSpace m)))
@@ -292,7 +304,7 @@ colorWidget oid soaps = do
             elDynAttr' "img" (("src" =:) . fromMaybe "" <$> imgSrc) blank
 
 #ifdef ghcjs_HOST_OS
-    let htmlImg = ImageElement.castToHTMLImageElement $ _element_raw img
+    htmlImg <- unsafeCastTo ImageElement.HTMLImageElement $ _element_raw img
 
     geom <- holdDyn (1 :: Int) =<<
         performEvent (ffor (domEvent Load img) $ \_ -> liftIO $
@@ -433,12 +445,20 @@ displayWhen b tag attrs ma = do
 relativizeEvent e eventName = do
     wrapDomEvent e (`on` eventName) $ do
         ev   <- event
-        br   <- fromMaybe (error "Unlikely")
-                <$> liftIO (getBoundingClientRect e)
+        -- br   <- fromMaybe (error "Unlikely")
+        --         <$> liftIO (getBoundingClientRect e)
+
+        -- br   <- unsafeCastTo GHCJS.Rect
+        br   <- fromMaybe (error "Unlikely") <$>
+          (castTo GHCJS.Rect =<< liftIO (getBoundingClientRect e))
         top  <- liftIO $ getTop br
         left <- liftIO $ getLeft br
-        x' <- (\x -> x - floor left) <$> getClientX ev
-        y' <- (\y -> y - floor top)  <$> getClientY ev
+        let topInt  = fromJSInt $ GHCJS.unCSSPrimitiveValue top
+        let leftInt = fromJSInt $ GHCJS.unCSSPrimitiveValue left
+        -- x' <- (\x -> x - floor left) <$> getClientX ev
+        x' <- (\x -> x - leftInt) <$> getClientX ev
+        -- y' <- (\y -> y - floor top)  <$> getClientY ev
+        y' <- (\y -> y - topInt ) <$> getClientY ev
         return (x', y')
 #endif
 

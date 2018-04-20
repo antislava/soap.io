@@ -36,6 +36,7 @@ data Soap = Soap {
   , soapColors     :: SoapColors
   } deriving (Eq, Ord, Show, Generic)
 
+#ifndef ghcjs_HOST_OS
 mkPersist ghCodeGen [groundhog|
 entity: SoapColors
 |]
@@ -43,6 +44,7 @@ entity: SoapColors
 mkPersist ghCodeGen [groundhog|
 entity: Soap
 |]
+#endif
 
 instance ToJSON Soap
 instance FromJSON Soap
