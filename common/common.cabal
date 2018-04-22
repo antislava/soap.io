@@ -30,7 +30,7 @@ library
   if impl(ghcjs)
      build-depends: groundhog-ghcjs
   if !impl(ghcjs)
-     build-depends: 
+     build-depends:
                      groundhog
                    , groundhog-th
   hs-source-dirs:      src

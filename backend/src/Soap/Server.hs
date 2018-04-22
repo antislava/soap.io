@@ -76,7 +76,7 @@ app = makeSnaplet "app" "Example application" Nothing $ do
 
 type AppHandler = Handler App App
 
-serveAPI :: Server API AppHandler
+-- serveAPI :: Server API AppHandler
 serveAPI = crudServer :<|> estimationHandler :<|> serveColor
 
 
@@ -91,9 +91,9 @@ instance HasKey Soap where
     autoToEKey = toEKey
 
 
-crudServer
-    :: (ToJSON a, FromJSON a, G.PersistEntity a, HasKey a)
-    => Server (CRUD a) AppHandler
+-- crudServer
+--     :: (ToJSON a, FromJSON a, G.PersistEntity a, HasKey a)
+--     => Server (CRUD a) AppHandler
 crudServer = c :<|> r :<|> u :<|> d :<|> rAll
   where c a   = autoToEKey <$> runGh (G.insert a)
         r     = noteH err404 . runGh . G.get . fromEKey
