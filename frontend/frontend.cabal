@@ -31,15 +31,11 @@ executable frontend
                      , servant
                      , text
                      , ghcjs-dom
-                     -- , ghcjs-dom-jsffi
-                     -- , groundhog-ghcjs
                      , mtl
                      , uri-bytestring
   if impl(ghcjs)
      build-depends:
-                       ghcjs-dom-jsffi
-                     , ghcjs-prim
-                     , groundhog-ghcjs
+                       groundhog-ghcjs
   if !impl(ghcjs)
      build-depends:
                        jsaddle

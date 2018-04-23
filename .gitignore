@@ -1,4 +1,10 @@
 dist
+dist-*
+backend-result
+backend/bin/
+frontend-result
+cabal*.project.local*
+
 .cabal-sandbox
 *.js
 *.webapp
