@@ -37,6 +37,18 @@ nix-build default-spec.nix --arg isGhcjs true -o frontend-result -A ghcjs.fronte
 # check the results
 tree backend-result
 tree frontend-result
+
+# Copy frontend files
+cp ./frontend-result/bin/frontend.jsexe/* ./static/
+
+# PREPARE POSTGRES DB (see postgres-nix.md)
+
+# Start the server
+./backend-result/bin/backend
+no port specified, defaulting to port 8000
+Initializing app @ /
+Initializing CookieSession @ /sess
+Initializing groundhog @ /groundhog
 ```
 
 ### Development in nix shell
@@ -50,6 +62,7 @@ Dropping into respective shells
 Building `backend`
 
 ```sh
+mkdir -p ./backend/bin/
 ./cabal-ghc new-build all && \
 find . -path "./dist-newstyle/*/backend/backend" -exec cp {} ./backend/bin/ \;
 

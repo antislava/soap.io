@@ -5,6 +5,9 @@ Quick `postgres` installation and setup
 nix-env '<nixpkgs>' -iA postgresql100
 # or in a specialised nix shell environment (PREFERRED - avoiding potential locale variable problems!)
 nix-shell '<nixpkgs>' -A postgresql100
+# or on NixOS:
+nix-shell -p postgresql100
+
 
 # specify test data location and init db
 mkdir -p ~/tmp/pgdata

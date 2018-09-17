@@ -3,4 +3,4 @@
 DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 
 # nix-shell $DIR/default.nix -A shells.ghcjs --add-root $DIR/dist-ghcjs/gc-roots/gc-root --indirect
-nix-shell $DIR/default-spec.nix --arg isGhcjs true -A shells.ghcjs --add-root $DIR/dist-ghcjs/gc-roots/gc-root --indirect
+nix-shell -Q $DIR/default-spec.nix --arg isGhcjs true -A shells.ghcjs --add-root $DIR/dist-ghcjs/gc-roots/gc-root --indirect
