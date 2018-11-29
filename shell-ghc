@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+
+DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
+
+# nix-shell $DIR/default.nix -A shells.ghc --add-root $DIR/dist-newstyle/gc-roots/gc-root --indirect
+nix-shell -Q $DIR/project.nix --arg isGhcjs false -A shells.ghc --add-root $DIR/dist-ghc/gc-roots/gc-root --indirect

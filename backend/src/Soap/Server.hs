@@ -68,7 +68,7 @@ app = makeSnaplet "app" "Example application" Nothing $ do
     liftIO $ (G.runDbConn . G.runMigration $ G.migrate (undefined :: Soap)) pool
 
     addRoutes [("api", serveSnap (Proxy @API) serveAPI)
-              ,("", serveDirectory "static")
+              ,("", serveDirectory "soap-static")
               ]
 
     return $ App g s
@@ -76,7 +76,7 @@ app = makeSnaplet "app" "Example application" Nothing $ do
 
 type AppHandler = Handler App App
 
-serveAPI :: Server API AppHandler
+-- serveAPI :: Server API AppHandler
 serveAPI = crudServer :<|> estimationHandler :<|> serveColor
 
 
@@ -91,9 +91,9 @@ instance HasKey Soap where
     autoToEKey = toEKey
 
 
-crudServer
-    :: (ToJSON a, FromJSON a, G.PersistEntity a, HasKey a)
-    => Server (CRUD a) AppHandler
+-- crudServer
+--     :: (ToJSON a, FromJSON a, G.PersistEntity a, HasKey a)
+--     => Server (CRUD a) AppHandler
 crudServer = c :<|> r :<|> u :<|> d :<|> rAll
   where c a   = autoToEKey <$> runGh (G.insert a)
         r     = noteH err404 . runGh . G.get . fromEKey
@@ -162,6 +162,9 @@ hslMean (MeanPixel (rs,gs,bs)) =
         t = T.pack . show . round
     in T.concat ["rgb( ", t r, " , ", t g, " ,",  t b," )"]
 
+
+instance Semigroup MeanPixel where
+    MeanPixel (r, g, b) <> MeanPixel (r', g', b') = MeanPixel (r <> r', g <> g', b <> b')
 
 instance Monoid MeanPixel where
     mempty = MeanPixel ([], [], [])

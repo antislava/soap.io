@@ -12,6 +12,8 @@
 {-# LANGUAGE TypeFamilies          #-}
 {-# LANGUAGE TypeOperators         #-}
 
+{-# LANGUAGE PartialTypeSignatures #-}
+
 module Main where
 
 ------------------------------------------------------------------------------
@@ -41,10 +43,10 @@ import           Servant.Reflex
 import           Text.Read
 import qualified URI.ByteString             as URI
 #ifdef ghcjs_HOST_OS
-import           GHCJS.DOM.ClientRect       (getHeight, getLeft, getTop,
-                                             getWidth)
-import           GHCJS.DOM.Element          (click, getBoundingClientRect,
+import           GHCJS.DOM.Element          (getBoundingClientRect,
                                              getClientLeft, getClientTop)
+import           GHCJS.DOM.GlobalEventHandlers (click)
+import           GHCJS.DOM.Types (castTo, unsafeCastTo)
 #endif
 import Text.Printf
 
@@ -54,18 +56,24 @@ import           Soap.API
 
 ------------------------------------------------------------------------------
 main :: IO ()
-main = mainWidgetWithCss header' mainApp
+main = do
+  print "Hello, world"
+  mainWidgetWithCss header' mainApp
 
 
 ------------------------------------------------------------------------------
-type SupportsSoap t m = (DomBuilder t m, HasWebView (Performable m)
-                        ,DomBuilderSpace m ~ GhcjsDomSpace
-                        ,TriggerEvent t m, PerformEvent t m
-                        ,MonadIO (Performable m), PostBuild t m
-                        ,MonadHold t m
-                        ,MonadFix m
-                        ,GHCJS.IsGObject (RawElement (DomBuilderSpace m)))
-
+type SupportsSoap t m = ( DomBuilder t m, HasWebView (Performable m)
+                        , DomBuilderSpace m ~ GhcjsDomSpace
+                        , TriggerEvent t m, PerformEvent t m
+                        , MonadIO (Performable m), PostBuild t m
+#ifdef ghcjs_HOST_OS
+                        , MonadIO m -- SK: Needed for ghc as well?
+#endif
+                        , MonadHold t m
+                        , MonadFix m
+                        , GHCJS.IsGObject (RawElement (DomBuilderSpace m))
+                        , GHCJS.MonadJSM (Performable m)
+                        )
 
 ------------------------------------------------------------------------------
 mainApp :: forall t m. SupportsSoap t m => m ()
@@ -292,7 +300,7 @@ colorWidget oid soaps = do
             elDynAttr' "img" (("src" =:) . fromMaybe "" <$> imgSrc) blank
 
 #ifdef ghcjs_HOST_OS
-    let htmlImg = ImageElement.castToHTMLImageElement $ _element_raw img
+    htmlImg <- unsafeCastTo ImageElement.HTMLImageElement $ _element_raw img
 
     geom <- holdDyn (1 :: Int) =<<
         performEvent (ffor (domEvent Load img) $ \_ -> liftIO $
@@ -433,10 +441,8 @@ displayWhen b tag attrs ma = do
 relativizeEvent e eventName = do
     wrapDomEvent e (`on` eventName) $ do
         ev   <- event
-        br   <- fromMaybe (error "Unlikely")
-                <$> liftIO (getBoundingClientRect e)
-        top  <- liftIO $ getTop br
-        left <- liftIO $ getLeft br
+        top  <- liftIO $ getClientTop e
+        left <- liftIO $ getClientLeft e
         x' <- (\x -> x - floor left) <$> getClientX ev
         y' <- (\y -> y - floor top)  <$> getClientY ev
         return (x', y')
