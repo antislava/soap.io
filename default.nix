@@ -1,5 +1,6 @@
 let
-  reflex-platform = import ./nix/reflex-platform.nix;
+  reflex-platform = import (import ./nix/reflex-platform.nix) {};
+  # reflex-platform = import ./nix/reflex-platform.nix;
   dc  = reflex-platform.lib.dontCheck;
   jb  = reflex-platform.lib.doJailbreak;
 

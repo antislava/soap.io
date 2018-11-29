@@ -75,6 +75,8 @@ Building `frontend`
 ./cabal-ghcjs new-build all && \
 find . -path "./dist-ghcjs*frontend.jsexe/*" -exec cp {} ./static \;
 
+find . -path "./dist-ghcjs*frontend.jsexe/*" -exec cp {} ./soap-static \;
+
 browse http://0.0.0.0:8000
 ```
 

@@ -1,8 +1,10 @@
 { isGhcjs ? false}:
 let
-  reflex-platform = import ./nix/reflex-platform.nix;
-  dc  = reflex-platform.lib.dontCheck;
-  jb  = reflex-platform.lib.doJailbreak;
+  reflex-platform = import (import ./nix/reflex-platform.nix) {};
+  # reflex-platform = import ./nix/reflex-platform.nix;
+  lib = reflex-platform.nixpkgs.haskell.lib;
+  dc  = lib.dontCheck;
+  jb  = lib.doJailbreak;
 
 in
 reflex-platform.project ({ pkgs, ... }: {
