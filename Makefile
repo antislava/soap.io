@@ -6,16 +6,16 @@ DIR = .
 NIX_DEPS    = $(DIR)/nix-deps
 NIX_DIR     = $(DIR)/nix
 
-NIXPKGS_SRC = /github.com/NixOS/nixpkgs
-NIXPKGS_JSN = $(NIX_DIR)/nixpkgs.git.json
-# NIXPKGS_NIX = $(NIX_DIR)/nixpkgs.nix
+# NIXPKGS_SRC = /github.com/NixOS/nixpkgs
+# NIXPKGS_JSN = $(NIX_DIR)/nixpkgs.git.json
+# # NIXPKGS_NIX = $(NIX_DIR)/nixpkgs.nix
 
-OBELISK_SRC = /github.com/obsidiansystems/obelisk
-OBELISK_JSN = $(NIX_DIR)/obelisk.git.json
-# OBELISK_NIX = $(NIX_DIR)/obelisk.nix
+# OBELISK_SRC = /github.com/obsidiansystems/obelisk
+# OBELISK_JSN = $(NIX_DIR)/obelisk.git.json
+# # OBELISK_NIX = $(NIX_DIR)/obelisk.nix
 
-REFLEX_SRC = /github.com/reflex-frp/reflex-platform
-REFLEX_JSN = $(NIX_DIR)/reflex-platform.git.json
+# REFLEX_SRC = /github.com/reflex-frp/reflex-platform
+# REFLEX_JSN = $(NIX_DIR)/reflex-platform.git.json
 
 HDEPS       = $(DIR)/.haskdeps
 HDEPS_ALL   = $(HDEPS)/all
@@ -56,32 +56,39 @@ git-init :
 	git submodule add https://github.com/antislava/nix-utils
 
 # Import expressions for key nix packages (based on git json files)
-# make nix/obelisk.nix -B
-# make nix/reflex-platform.nix -B
-# make nix/nixpkgs.nix -B
-$(NIX_DIR)/%.nix : $(NIX_DIR)/%.git.json
-	echo -e "with builtins.fromJSON (builtins.readFile ./$(<F));\nbuiltins.fetchGit { inherit url rev; }" > $@
+# Example Usage: make -B ./nix/obelisk.git.json
+# Example %.git.sh:
+# cd /r-cache/git/github.com/obsidiansystems/obelisk && git fetch
+# nix-prefetch-git /r-cache/git/github.com/obsidiansystems/obelisk
+# Standard %.nix
+# import ../nix-utils/fetchGitSmart.nix ./obelisk.git.json
+$(NIX_DIR)/%.git.json : $(NIX_DIR)/%.git.sh
+	sh $< > $@
 
-# make -B nix/obelisk.git.json to force update
-$(NIXPKGS_JSN) :
-	# Switch between the original nixpkgs at github or a local mirror:
-	# nix-prefetch-git https:/$(NIXPKGS_SRC) > $(NIXPKGS)
-	cd $(GIT_CACHE)$(NIXPKGS_SRC) && git fetch
-	nix-prefetch-git $(GIT_CACHE)$(NIXPKGS_SRC) > $(NIXPKGS_JSN)
+# # MAY NEED TO ADD SUFFIX git.nix. Otherwise relying on rule specification
+# $(NIX_DIR)/%.nix : $(NIX_DIR)/%.git.json
+# 	echo -e "with builtins.fromJSON (builtins.readFile ./$(<F));\nbuiltins.fetchGit { inherit url rev; }" > $@
 
-# make -B nix/obelisk.git.json to force update
-$(REFLEX_JSN) :
-	# Switch between the original reflex-pltf at github or a local mirror:
-	# nix-prefetch-git https:/$(REFLEX_SRC) > $(REFLEX_JSN)
-	cd $(GIT_CACHE)$(REFLEX_SRC) && git fetch
-	nix-prefetch-git $(GIT_CACHE)$(REFLEX_SRC) > $(REFLEX_JSN)
+# # make -B nix/obelisk.git.json to force update
+# $(NIXPKGS_JSN) :
+# 	# Switch between the original nixpkgs at github or a local mirror:
+# 	# nix-prefetch-git https:/$(NIXPKGS_SRC) > $(NIXPKGS)
+# 	cd $(GIT_CACHE)$(NIXPKGS_SRC) && git fetch
+# 	nix-prefetch-git $(GIT_CACHE)$(NIXPKGS_SRC) > $(NIXPKGS_JSN)
 
-# make -B nix/obelisk.git.json to force update
-$(OBELISK_JSN) :
-	# Switch between the original obelisk at github or a local mirror:
-	# nix-prefetch-git https:/$(OBELISK_SRC) > $(OBELISK_JSN)
-	cd $(GIT_CACHE)$(OBELISK_SRC) && git fetch
-	nix-prefetch-git $(GIT_CACHE)$(OBELISK_SRC) > $(OBELISK_JSN)
+# # make -B nix/obelisk.git.json to force update
+# $(REFLEX_JSN) :
+# 	# Switch between the original reflex-pltf at github or a local mirror:
+# 	# nix-prefetch-git https:/$(REFLEX_SRC) > $(REFLEX_JSN)
+# 	cd $(GIT_CACHE)$(REFLEX_SRC) && git fetch
+# 	nix-prefetch-git $(GIT_CACHE)$(REFLEX_SRC) > $(REFLEX_JSN)
+
+# # make -B nix/obelisk.git.json to force update
+# $(OBELISK_JSN) :
+# 	# Switch between the original obelisk at github or a local mirror:
+# 	# nix-prefetch-git https:/$(OBELISK_SRC) > $(OBELISK_JSN)
+# 	cd $(GIT_CACHE)$(OBELISK_SRC) && git fetch
+# 	nix-prefetch-git $(GIT_CACHE)$(OBELISK_SRC) > $(OBELISK_JSN)
 
 
 # IMPORT EXPRESSIONS FOR DEPENDENT (HASKELL) PACKAGES
@@ -91,11 +98,8 @@ $(OBELISK_JSN) :
 $(NIX_DEPS)/%.nix : $(NIX_DEPS)/%.sh
 	sh $< > $@
 
-# %.nix : %.sh
-# 	sh $< > $@
-
-
 # OBELISK (and other tools) SHELL
+
 
 .PHONY : ob-install-global
 ob-install-global : $(OBELISK) $(OBELISK_NIX)

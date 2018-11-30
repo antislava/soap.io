@@ -1,2 +1,1 @@
-with builtins.fromJSON (builtins.readFile ./obelisk.git.json);
-builtins.fetchGit { inherit url rev; }
+import ../nix-utils/fetchGitSmart.nix ./obelisk.git.json
